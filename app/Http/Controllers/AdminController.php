@@ -11,10 +11,10 @@ class AdminController extends Controller
     public function index()
     {
         $stats = [
-            'anime.count'  => Anime::count(),
-            'posts.count'  => Post::count(),
-            'users.count'  => User::count(),
-            'admins.count' => User::where('role', 'admin')->count(),
+            'anime_count'  => Anime::count(),
+            'posts_count'  => Post::count(),
+            'users_count'  => User::count(),
+            'admins_count' => User::where('role', 'admin')->count(),
         ];
 
         $latestAnime = Anime::latest()->take(5)->get();

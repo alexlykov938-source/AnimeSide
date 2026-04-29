@@ -44,4 +44,18 @@ class Anime extends Model
 
         return '';
     }
+
+    public function episodes()
+    {
+        return $this->hasMany(Episode::class);
+    }
+
+    public function seasons()
+    {
+        return $this->episodes()
+        ->select('season')
+        ->distinct()
+        ->orderBy('season')
+        ->pluck('season');
+    }
 }

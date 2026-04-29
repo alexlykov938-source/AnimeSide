@@ -14,6 +14,32 @@
     @endauth
 </div>
 
+{{-- Поиск через AniList --}}
+@auth
+    @if (auth()->user()->isAdmin())
+        <form action="{{ route('anime.fetch') }}" method="POST" class="flex gap-2 mb-4">
+            @csrf
+            <input type="text" name="search" placeholder="Поиск через AniList..." 
+                class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent w-64">
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition">
+                🔍 Найти
+            </button>
+        </form>
+    @endif
+@endauth
+
+{{-- Сообщения --}}
+@if (session('success'))
+    <div class="mb-4 p-4 bg-green-900/50 border border-green-700 text-green-300 rounded-lg">
+        {{ session('success') }}
+    </div>
+@endif
+@if (session('error'))
+    <div class="mb-4 p-4 bg-red-900/50 border border-red-700 text-red-300 rounded-lg">
+        {{ session('error') }}
+    </div>
+@endif
+
 {{-- Фильтры --}}
 <div class="bg-gray-900 p-5 rounded-xl border border-gray-800 mb-8">
     <form action="{{ route('anime.index') }}" method="GET" class="flex flex-wrap gap-4 items-end">
@@ -83,17 +109,19 @@
                         {{ $anime->status === 'ongoing' ? '🟢 Выходит' : ($anime->status === 'completed' ? '🔵 Завершён' : '🟡 Анонс') }}
                     </span>
                 </div>
-                @auth
-                    @if (auth()->user()->isAdmin())
-                        <div class="flex gap-3 mt-3">
+                <div class="flex gap-3 mt-3">
+                    <a href="{{ route('anime.watch', $anime) }}" class="text-sm text-green-400 hover:text-green-300 transition">▶ Смотреть</a>
+                    @auth
+                        @if (auth()->user()->isAdmin())
                             <a href="{{ route('anime.edit', $anime) }}" class="text-sm text-purple-400 hover:text-purple-300 transition">✏</a>
+                            <a href="{{ route('episodes.index', $anime) }}" class="text-sm text-yellow-400 hover:text-yellow-300 transition">📋 Серии</a>
                             <form action="{{ route('anime.destroy', $anime) }}" method="POST" onsubmit="return confirm('Удалить {{ $anime->title }}?')">
                                 @csrf @method('DELETE')
                                 <button class="text-sm text-red-400 hover:text-red-300 transition">🗑</button>
                             </form>
-                        </div>
-                    @endif
-                @endauth
+                        @endif
+                    @endauth
+                </div>
             </div>
         </div>
     @empty

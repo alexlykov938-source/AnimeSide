@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Anime;
 use App\Http\Requests\AnimeRequest;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\{Storage, Http};
 use Illuminate\Http\Request;
 
 class AnimeController extends Controller
@@ -100,5 +100,95 @@ class AnimeController extends Controller
 
         return redirect()->route('anime.index')
             ->with('success', 'Аниме удалено!');
+    }
+
+    // Просмотр с плеером
+    public function watch(Anime $anime)
+    {
+        $seasons = $anime->seasons();
+        $currentSeason = request('season', $seasons->first() ?? 1);
+        
+        $episodes = $anime->episodes()
+            ->where('season', $currentSeason)
+            ->orderBy('episode_number')
+            ->get();
+        
+        $currentEpisode = null;
+        
+        if (request('episode')) {
+            $currentEpisode = $anime->episodes()
+                ->where('season', $currentSeason)
+                ->where('episode_number', request('episode'))
+                ->first();
+        } elseif ($episodes->isNotEmpty()) {
+            $currentEpisode = $episodes->first();
+        }
+
+        //dd($currentEpisode, $episodes->toArray(), request()->all());
+
+        return view('anime.watch', compact('anime', 'seasons', 'currentSeason', 'episodes', 'currentEpisode'));
+    }
+    
+    public function fetch(Request $request)
+    {
+        $search = $request->input('search');
+
+        if (empty($search)) {
+            return back()->with('error', 'Введите название');
+        }
+
+        $query = '
+        query ($search: String) {
+            Page(perPage: 5) {
+                media(search: $search, type: ANIME) {
+                id
+                title {romaji english native}
+                description
+                genres
+                episodes
+                seasonYear
+                averageScore
+                coverImage {large}
+                studios {nodes{name}}
+                }
+            }
+        }
+        ';
+
+        $response = Http::withoutVerifying()->post('https://graphql.anilist.co', [
+            'query'     => $query,
+            'variables' => ['search' => $search],
+        ]);
+
+        if ($response->failed()) {
+            return back()->with('error', 'Ошибка API');
+        }
+
+        $animes = $response->json('data.Page.media');
+
+        if (empty($animes)) {
+            return back()->with('error', 'Ничего не найдено');
+        }
+
+        $count = 0;
+        foreach ($animes as $data) {
+            $anime = Anime::updateOrCreate(
+                ['title' => $data['title']['romaji'] ?? $data['title']['english'] ?? $search],
+                [
+                    'genre' => implode(', ', $data['genres'] ?? []),
+                    'type' => 'Сериал',
+                    'episodes' => $data['episodes'] ?? 0,
+                    'year' => $data['seasonYear'] ?? null,
+                    'studio' => $data['studios']['nodes'][0]['name'] ?? null,
+                    'rating' => ($data['averageScore'] ?? 0) / 10,
+                    'description' => strip_tags($data['description'] ?? ''),
+                    'image' => $data['coverImage']['large'] ?? null,
+                    'status' => 'completed',
+                ]
+            );
+            $count++;
+        }
+
+        return back()->with('success', "Добавлено аниме: {$count}");
     }
 }

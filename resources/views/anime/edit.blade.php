@@ -93,6 +93,18 @@
         </div>
 
         <div>
+            <label class="block text-sm font-semibold text-gray-300 mb-1">Ссылка на трейлер (YouTube)</label>
+            <input type="text" name="trailer_url" value="{{ old('trailer_url', $anime->trailer_url) }}" placeholder="https://youtube.com/watch?v=..."
+                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-300 mb-1">Ссылка на видео (YouTube, .m3u8, .mp4)</label>
+            <input type="text" name="video_url" value="{{ old('video_url', $anime->video_url) }}" placeholder="https://..."
+                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+        </div>
+
+        <div>
             <label class="block text-sm font-semibold text-gray-300 mb-1">Описание</label>
             <textarea name="description" rows="5"
                 class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">{{ old('description', $anime->description) }}</textarea>

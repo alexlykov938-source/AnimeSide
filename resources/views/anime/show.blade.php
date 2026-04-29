@@ -33,9 +33,15 @@
             <h3 class="text-lg font-semibold mt-4 mb-2">Описание</h3>
             <p class="text-gray-400 leading-relaxed">{{ $anime->description ?? 'Описание отсутствует.' }}</p>
         </div>
+        <a href="{{ route('anime.watch', $anime) }}" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-6 rounded-lg transition mt-4">
+            ▶ Смотреть
+        </a>
         @auth
             @if (auth()->user()->isAdmin())
                 <div class="mt-6 flex gap-3">
+                    <a href="{{ route('episodes.index', $anime) }}" class="bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded-lg transition">
+                        📋 Серии
+                    </a>
                     <a href="{{ route('anime.edit', $anime) }}" class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition">
                         ✏ Редактировать
                     </a>
