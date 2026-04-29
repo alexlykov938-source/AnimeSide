@@ -31,6 +31,7 @@ class EpisodeController extends Controller
             'episode_number' => 'required|integer|min:1',
             'title'          => 'nullable|string|max:255',
             'video_url'      => 'required|url|max:500',
+            'dubbing'        => 'nullable|string|max:1000',
             'description'    => 'nullable|string|max:1000',
         ]);
 
@@ -52,6 +53,7 @@ class EpisodeController extends Controller
             'episode_number' => 'required|integer|min:1',
             'title'          => 'nullable|string|max:255',
             'video_url'      => 'required|url|max:500',
+            'dubbing'        => 'nullable|string|max:1000',
             'description'    => 'nullable|string|max:1000',
         ]);
 
@@ -66,5 +68,50 @@ class EpisodeController extends Controller
         $episode->delete();
 
         return back()->with('success', 'Серия удалена');
+    }
+
+    public function bulk(Anime $anime)
+    {
+        return view('episodes.bulk', compact('anime'));
+    }
+
+    public function bulkStore(Request $request, Anime $anime)
+    {
+        $request->validate([
+            'season' => 'required|integer|min:1',
+            'data'   => 'required|string',
+        ]);
+
+        $lines = explode("\n", trim($request->data));
+        $count = 0;
+
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (empty($line)) continue;
+
+            // Формат: номер|название|видео|озвучка
+            $parts         = explode('|', $line);
+            $episodeNumber = (int) trim($parts[0]);
+            $title         = trim($parts[1] ?? '');
+            $videoUrl      = trim($parts[2] ?? '');
+            $dubbing       = trim($parts[3] ?? '');
+
+            if ($episodeNumber && $videoUrl) {
+                $anime->episodes()->updateOrCreate(
+                    [
+                        'season'         => $request->season,
+                        'episode_number' => $episodeNumber,
+                    ],
+                    [
+                        'title' => $title ?: null,
+                        'video_url' => $videoUrl,
+                        'dubbing'   => $dubbing ?: null,
+                    ]
+                );
+                $count++;
+            }
+        }
+        return redirect()->route('episodes.index', $anime)
+            ->with('success', "Добавленно/обновлено серий: {$count}");
     }
 }

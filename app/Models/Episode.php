@@ -12,6 +12,7 @@ class Episode extends Model
         'episode_number',
         'title',
         'video_url',
+        'dubbing',
         'description',
     ];
 

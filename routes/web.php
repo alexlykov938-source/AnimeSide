@@ -37,6 +37,22 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/anime/{anime}/edit', [AnimeController::class, 'edit'])->name('anime.edit');
     Route::put('/anime/{anime}', [AnimeController::class, 'update'])->name('anime.update');
     Route::delete('/anime/{anime}', [AnimeController::class, 'destroy'])->name('anime.destroy');
+    // Остальные админские (edit/update/destroy + episodes — с {anime})
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/anime/{anime}/edit', [AnimeController::class, 'edit'])->name('anime.edit');
+    Route::put('/anime/{anime}', [AnimeController::class, 'update'])->name('anime.update');
+    Route::delete('/anime/{anime}', [AnimeController::class, 'destroy'])->name('anime.destroy');
+
+    // Серии
+    Route::get('/anime/{anime}/episodes', [EpisodeController::class, 'index'])->name('episodes.index');
+    Route::get('/anime/{anime}/episodes/create', [EpisodeController::class, 'create'])->name('episodes.create');
+    Route::post('/anime/{anime}/episodes', [EpisodeController::class, 'store'])->name('episodes.store');
+    Route::get('/anime/{anime}/episodes/bulk', [EpisodeController::class, 'bulk'])->name('episodes.bulk');
+    Route::post('/anime/{anime}/episodes/bulk', [EpisodeController::class, 'bulkStore'])->name('episodes.bulk.store');
+    Route::get('/anime/{anime}/episodes/{episode}/edit', [EpisodeController::class, 'edit'])->name('episodes.edit');
+    Route::put('/anime/{anime}/episodes/{episode}', [EpisodeController::class, 'update'])->name('episodes.update');
+    Route::delete('/anime/{anime}/episodes/{episode}', [EpisodeController::class, 'destroy'])->name('episodes.destroy');
+});
 });
 
 // Поиск через AniList

@@ -8,29 +8,52 @@
         <div class="bg-black rounded-xl overflow-hidden shadow-lg mb-4">
             @if ($currentEpisode && $currentEpisode->video_url)
                 @php
-                    $videoUrl = $currentEpisode->video_url;
-                    $isYoutube = str_contains($videoUrl, 'youtube') || str_contains($videoUrl, 'youtu.be');
+                    // Собираем все озвучки
+                    $dubbings = [];
+                    if ($currentEpisode->dubbing) {
+                        foreach (explode(',', $currentEpisode->dubbing) as $item) {
+                            $item = trim($item);
+                            if (str_contains($item, '|')) {
+                                [$name, $url] = explode('|', $item, 2);
+                                $dubbings[] = ['name' => trim($name), 'url' => trim($url)];
+                            }
+                        }
+                    }
+                    array_unshift($dubbings, ['name' => 'По умолчанию', 'url' => $currentEpisode->video_url]);
+                    
+                    $activeUrl = request('dub', $dubbings[0]['url']);
                 @endphp
 
+                {{-- Кнопки озвучки --}}
+                @if (count($dubbings) > 1)
+                    <div class="flex flex-wrap gap-2 p-3 bg-gray-900">
+                        @foreach ($dubbings as $dub)
+                            <a href="{{ request()->fullUrlWithQuery(['dub' => $dub['url']]) }}" 
+                               class="px-3 py-1 rounded-lg text-xs font-medium {{ $activeUrl === $dub['url'] ? 'bg-purple-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
+                                {{ $dub['name'] }}
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
+
+                {{-- Плеер --}}
+                @php
+                    $isYoutube = str_contains($activeUrl, 'youtube') || str_contains($activeUrl, 'youtu.be');
+                @endphp
                 @if ($isYoutube)
                     @php
-                        preg_match('/(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/', $videoUrl, $matches);
+                        preg_match('/(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/', $activeUrl, $matches);
                         $youtubeId = $matches[1] ?? '';
                     @endphp
                     @if ($youtubeId)
-                        <iframe src="https://www.youtube.com/embed/{{ $youtubeId }}" 
-                                class="w-full aspect-video" frameborder="0" allowfullscreen
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
-                        </iframe>
+                        <iframe src="https://www.youtube.com/embed/{{ $youtubeId }}" class="w-full aspect-video" frameborder="0" allowfullscreen
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
                     @else
-                        <video class="w-full aspect-video" controls>
-                            <source src="{{ $videoUrl }}" type="video/mp4">
-                        </video>
+                        <video class="w-full aspect-video" controls><source src="{{ $activeUrl }}" type="video/mp4"></video>
                     @endif
                 @else
                     <video class="w-full aspect-video" controls crossorigin="anonymous">
-                        <source src="{{ $videoUrl }}" type="video/mp4">
-                        Ваш браузер не поддерживает видео.
+                        <source src="{{ $activeUrl }}" type="video/mp4">
                     </video>
                 @endif
             @elseif ($anime->trailer_url)
@@ -40,14 +63,10 @@
                     $youtubeId = $matches[1] ?? '';
                 @endphp
                 @if ($youtubeId)
-                    <iframe src="https://www.youtube.com/embed/{{ $youtubeId }}" 
-                            class="w-full aspect-video" frameborder="0" allowfullscreen
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
-                    </iframe>
+                    <iframe src="https://www.youtube.com/embed/{{ $youtubeId }}" class="w-full aspect-video" frameborder="0" allowfullscreen
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
                 @else
-                    <video class="w-full aspect-video" controls>
-                        <source src="{{ $trailerUrl }}" type="video/mp4">
-                    </video>
+                    <video class="w-full aspect-video" controls><source src="{{ $trailerUrl }}" type="video/mp4"></video>
                 @endif
             @else
                 <div class="aspect-video flex flex-col items-center justify-center text-gray-500 bg-gray-900">
@@ -61,8 +80,8 @@
         @if ($seasons->count() > 1)
             <div class="flex gap-2 mb-4">
                 @foreach ($seasons as $season)
-                    <a href="{{ route('anime.watch', ['anime' => $anime]) }}?season={{ $season }}" 
-                    class="px-4 py-1 rounded-lg text-sm font-medium {{ $season == $currentSeason ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700' }}">
+                    <a href="{{ route('anime.watch', $anime) }}?season={{ $season }}" 
+                       class="px-4 py-1 rounded-lg text-sm font-medium {{ $season == $currentSeason ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700' }}">
                         Сезон {{ $season }}
                     </a>
                 @endforeach
@@ -73,18 +92,15 @@
         @if ($episodes->count())
             <div class="grid grid-cols-4 sm:grid-cols-6 gap-2 mb-4">
                 @foreach ($episodes as $ep)
-                    <a href="{{ route('anime.watch', ['anime' => $anime]) }}?season={{ $currentSeason }}&episode={{ $ep->episode_number }}"
-                    class="text-center py-2 px-3 rounded-lg text-sm {{ $currentEpisode && $currentEpisode->id === $ep->id ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700' }}">
+                    <a href="{{ route('anime.watch', $anime) }}?season={{ $currentSeason }}&episode={{ $ep->episode_number }}"
+                       class="text-center py-2 px-3 rounded-lg text-sm {{ $currentEpisode && $currentEpisode->id === $ep->id ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700' }}">
                         Серия {{ $ep->episode_number }}
-                        @if ($ep->title)
-                            <span class="block text-xs text-gray-400 truncate">{{ $ep->title }}</span>
-                        @endif
                     </a>
                 @endforeach
             </div>
         @endif
 
-        {{-- Название текущей серии --}}
+        {{-- Название серии --}}
         @if ($currentEpisode && $currentEpisode->title)
             <h2 class="text-lg font-semibold mb-2">Серия {{ $currentEpisode->episode_number }}: {{ $currentEpisode->title }}</h2>
         @endif
@@ -99,21 +115,15 @@
         <p class="text-gray-400">{{ $anime->description }}</p>
     </div>
 
-    {{-- Сайдбар --}}
     <div class="lg:col-span-1 space-y-4">
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-2">
             <div><span class="text-gray-500">🎭 Жанр:</span> <span class="text-gray-300">{{ $anime->genre }}</span></div>
             <div><span class="text-gray-500">📅 Год:</span> <span class="text-gray-300">{{ $anime->year ?? '—' }}</span></div>
             <div><span class="text-gray-500">🏢 Студия:</span> <span class="text-gray-300">{{ $anime->studio ?? '—' }}</span></div>
         </div>
-
         <div class="space-y-2">
-            <a href="{{ route('anime.show', $anime) }}" class="block w-full text-center bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-2 px-4 rounded-lg transition border border-gray-700">
-                ℹ Подробнее
-            </a>
-            <a href="{{ route('anime.index') }}" class="block w-full text-center bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-2 px-4 rounded-lg transition border border-gray-700">
-                ← В каталог
-            </a>
+            <a href="{{ route('anime.show', $anime) }}" class="block w-full text-center bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-2 px-4 rounded-lg transition border border-gray-700">ℹ Подробнее</a>
+            <a href="{{ route('anime.index') }}" class="block w-full text-center bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-2 px-4 rounded-lg transition border border-gray-700">← В каталог</a>
         </div>
     </div>
 </div>

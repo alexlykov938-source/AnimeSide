@@ -35,6 +35,13 @@
             <input type="text" name="video_url" value="{{ old('video_url', $episode->video_url) }}" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
         </div>
         <div>
+            <label class="block text-sm font-semibold text-gray-300 mb-1">Озвучка (через запятую, если несколько ссылок)</label>
+            <input type="text" name="dubbing" value="{{ old('dubbing', $episode->dubbing) }}" 
+                placeholder="Студийная банда | ссылка, AniLibria | ссылка"
+                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+            <p class="text-gray-500 text-xs mt-1">Формат: Название озвучки | ссылка_на_видео, Название2 | ссылка2</p>
+        </div>
+        <div>
             <label class="block text-sm font-semibold text-gray-300 mb-1">Описание</label>
             <textarea name="description" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">{{ old('description', $episode->description) }}</textarea>
         </div>

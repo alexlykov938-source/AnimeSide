@@ -6,7 +6,7 @@
     <title>@yield('title', 'AnimeSide')</title>
     @vite('resources/css/app.css')
 </head>
-<body class="bg-gray-950 text-gray-100 font-sans antialiased">
+<body class="bg-gray-950 text-gray-100 font-sans antialiased flex flex-col min-h-screen">
 
     <header class="bg-gray-900 border-b border-gray-800">
         <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -42,17 +42,27 @@
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-8">
+    <main class="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
         @if (session('success'))
-            <div class="mb-6 p-4 bg-green-900/50 border border-green-700 text-green-300 rounded-lg">
+            <div id="flash-message" class="mb-6 p-4 bg-green-900/50 border border-green-700 text-green-300 rounded-lg">
                 {{ session('success') }}
             </div>
+            <script>
+                setTimeout(() => {
+                    const msg = document.getElementById('flash-message');
+                    if (msg) {
+                        msg.style.transition = 'opacity 0.5s';
+                        msg.style.opacity = '0';
+                        setTimeout(() => msg.remove(), 500);
+                    }
+                }, 3000);
+            </script>
         @endif
 
         @yield('content')
     </main>
 
-    <footer class="bg-gray-900 border-t border-gray-800 mt-12 py-6 text-center text-gray-500 text-sm">
+    <footer class="bg-gray-900 border-t border-gray-800 py-6 text-center text-gray-500 text-sm">
         &copy; {{ date('Y') }} AnimeSide. Сделано с любовью к аниме.
     </footer>
 </body>

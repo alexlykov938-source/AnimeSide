@@ -5,14 +5,15 @@
 @section('content')
 <div class="flex justify-between items-center mb-8">
     <h1 class="text-3xl font-bold">Серии: {{ $anime->title }}</h1>
-    <a href="{{ route('episodes.create', $anime) }}" class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2.5 px-5 rounded-lg transition">
-        + Добавить серию
-    </a>
+    <div class="flex gap-2">
+        <a href="{{ route('episodes.create', $anime) }}" class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2.5 px-5 rounded-lg transition">
+            + Добавить серию
+        </a>
+        <a href="{{ route('episodes.bulk', $anime) }}" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-5 rounded-lg transition">
+            + Массовое добавление
+        </a>
+    </div>
 </div>
-
-@if (session('success'))
-    <div class="mb-4 p-4 bg-green-900/50 border border-green-700 text-green-300 rounded-lg">{{ session('success') }}</div>
-@endif
 
 @forelse ($episodes as $season => $items)
     <div class="mb-6">
